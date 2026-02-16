@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Student Enquiry Portal</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:url("img5.png") no-repeat center center fixed;
+  background-size:cover;
+  padding:20px 10px;
+  box-sizing:border-box;
+}
+
+/* Main glass card */
+.wrapper{
+  background:rgba(255,255,255,0.12);
+  backdrop-filter:blur(15px);
+  border:1px solid rgba(255,255,255,0.25);
+  padding:22px;
+  border-radius:18px;
+  width:100%;
+  max-width:420px;
+  color:white;
+  box-shadow:0 15px 35px rgba(0,0,0,0.4);
+  box-sizing:border-box;
+  margin:20px auto;
+}
+
+/* two banner images: desktop + mobile */
+.logo-img-desktop,
+.logo-img-phone{
+  width:100%;
+  object-fit:cover;
+  border-radius:12px;
+  margin-bottom:10px;
+}
+.logo-img-desktop{
+  height:95px;
+}
+.logo-img-phone{
+  display:none;
+}
+
+/* title and form */
+.title{
+  text-align:center;
+  font-weight:bold;
+  margin-bottom:12px;
+}
+
+input, textarea{
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+  border-radius:6px;
+  border:none;
+  outline:none;
+  box-sizing:border-box;
+}
+
+textarea{ height:70px; }
+
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:6px;
+  background:#25D366;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+}
+
+.admin-btn{ background:#333; margin-top:8px; }
+
+.popup{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%) scale(0);
+  background:white;
+  color:black;
+  padding:20px;
+  border-radius:10px;
+  transition:0.3s;
+}
+
+.popup.show{
+  transform:translate(-50%,-50%) scale(1);
+}
+
+/* Glass Footer */
+.footer{
+  margin:15px auto 0;
+  max-width:420px;
+  background:rgba(255,255,255,0.12);
+  backdrop-filter:blur(15px);
+  border:1px solid rgba(255,255,255,0.25);
+  padding:8px 12px;
+  border-radius:12px;
+  color:white;
+  font-size:13px;
+  text-align:center;
+  box-shadow:0 10px 25px rgba(0,0,0,0.3);
+}
+
+/* only vertically center whole card on larger screens (PC) */
+@media (min-width: 992px){
+  body{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+  }
+}
+
+/* PHONE styles */
+@media (max-width: 600px){
+  /* swap banner image on phone */
+  .logo-img-desktop{ display:none; }
+  .logo-img-phone{ display:block; }
+
+  .wrapper{
+    margin-top:10px;
+    margin-bottom:10px;
+    padding:18px;
+  }
+
+  .footer{
+    font-size:12px;
+    padding:6px 10px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+  <!-- desktop banner -->
+  <img src="banner.jpeg" class="logo-img-desktop" alt="School Banner">
+
+  <!-- phone banner: use your new image file (phone.jpeg) -->
+  <img src="phone.jpg" class="logo-img-phone" alt="School Banner Mobile">
+
+  <div class="title">🎓 Student Enquiry Portal</div>
+
+  <form id="form">
+
+    <input type="text" id="student" placeholder="Student Name" required>
+    <input type="text" id="phone" placeholder="Phone Number" required>
+    <input type="text" id="father" placeholder="Father Name" required>
+    <input type="text" id="mother" placeholder="Mother Name" required>
+    <input type="text" id="className" placeholder="Class for Admission" required>
+    <textarea id="query" placeholder="Query (optional)"></textarea>
+
+    <button type="submit">Submit via WhatsApp</button>
+
+  </form>
+
+  <button class="admin-btn" onclick="openLogin()">Admin Panel</button>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  Copyright © 2026 Spark Industry. All Rights Reserved
+</div>
+
+<div id="popup" class="popup">✅ Enquiry Sent Successfully!</div>
+
+<script>
+const number="918017454880";
+
+if(!localStorage.getItem("adminPass")){
+  localStorage.setItem("adminPass","admin123");
+}
+
+document.getElementById("form").addEventListener("submit",function(e){
+  e.preventDefault();
+
+  const data={
+    student:student.value,
+    phone:phone.value,
+    father:father.value,
+    mother:mother.value,
+    className:className.value,
+    query:query.value||"N/A",
+    date:new Date().toLocaleString()
+  };
+
+  let list=JSON.parse(localStorage.getItem("enquiries")||"[]");
+  list.push(data);
+  localStorage.setItem("enquiries",JSON.stringify(list));
+
+  let msg=`New Student Enquiry
+
+Student: ${data.student}
+Phone: ${data.phone}
+Father: ${data.father}
+Mother: ${data.mother}
+Class: ${data.className}
+Query: ${data.query}`;
+
+  window.open(`https://wa.me/${number}?text=${encodeURIComponent(msg)}`);
+
+  popup.classList.add("show");
+  setTimeout(()=>popup.classList.remove("show"),2000);
+
+  this.reset();
+});
+
+/* LOGIN PAGE */
+function openLogin(){
+
+let html=`
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Login</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:url("img2.jpg") center/cover fixed;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  padding:20px;
+}
+
+.login{
+  background:rgba(255,255,255,0.15);
+  backdrop-filter:blur(15px);
+  border:1px solid rgba(255,255,255,0.25);
+  padding:30px;
+  border-radius:18px;
+  width:100%;
+  max-width:340px;
+  color:white;
+  box-shadow:0 15px 35px rgba(0,0,0,0.4);
+}
+
+/* phone tweaks for login */
+@media (max-width:600px){
+  .login{
+    padding:20px 15px;
+    margin:0 10px;
+  }
+}
+
+.pass-box{
+  display:flex;
+  gap:5px;
+  margin:12px auto;
+  width:90%;
+}
+
+.pass-box input{
+  flex:1;
+  padding:12px;
+  border-radius:6px;
+  border:none;
+}
+
+.pass-box button{
+  width:auto;
+  padding:12px;
+  background:#333;
+  border:none;
+  color:white;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.login button.login-btn{
+  display:block;
+  width:90%;
+  margin:auto;
+  padding:12px;
+  background:#000;
+  color:white;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login">
+<h3>Admin Login</h3>
+
+<div class="pass-box">
+<input type="password" id="pass" placeholder="Password">
+<button onclick="togglePass()">👁</button>
+</div>
+
+<button class="login-btn" onclick="login()">Login</button>
+</div>
+
+<script>
+function togglePass(){
+  let p=document.getElementById("pass");
+  p.type = p.type === "password" ? "text" : "password";
+}
+
+function login(){
+  let savedPass=localStorage.getItem("adminPass");
+  if(document.getElementById("pass").value===savedPass){
+    window.opener.openDashboard();
+    window.close();
+  }else alert("Wrong password");
+}
+<\/script>
+
+</body>
+</html>`;
+
+let win=window.open("","_blank");
+win.document.write(html);
+}
+
+/* DASHBOARD */
+function openDashboard(){
+
+let html=`
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"><\/script>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:url("img2.jpg") center/cover fixed;
+  padding:10px;
+}
+
+.dashboard{
+  background:rgba(255,255,255,0.15);
+  backdrop-filter:blur(15px);
+  border:1px solid rgba(255,255,255,0.25);
+  padding:20px;
+  border-radius:18px;
+  width:100%;
+  max-width:1100px;
+  margin:10px auto;
+  color:white;
+  box-shadow:0 15px 35px rgba(0,0,0,0.4);
+  box-sizing:border-box;
+}
+
+input{
+  padding:8px;
+  width:300px;
+  max-width:100%;
+  margin-bottom:10px;
+  border-radius:6px;
+  border:none;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+  background:white;
+  color:black;
+}
+
+th,td{
+  border:1px solid #ccc;
+  padding:6px;
+  text-align:center;
+}
+
+button{
+  padding:6px 10px;
+  background:#333;
+  color:white;
+  border:none;
+  cursor:pointer;
+  margin:3px;
+  border-radius:5px;
+}
+
+/* make dashboard responsive on phone */
+@media (max-width:600px){
+  .dashboard{
+    padding:12px 8px;
+    margin:5px;
+  }
+  table{
+    display:block;
+    width:100%;
+    overflow-x:auto;
+    white-space:nowrap;
+  }
+  th,td{
+    padding:5px 4px;
+    font-size:12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="dashboard">
+
+<h2>📊 Admin Dashboard</h2>
+
+<input type="text" id="search" placeholder="Search student..." onkeyup="filterTable()">
+
+<br>
+
+<button onclick="exportExcel()">Export Excel</button>
+<button onclick="changePassword()">Change Password</button>
+<button onclick="logout()">Logout</button>
+
+<h3 id="count">Total Enquiries: 0</h3>
+
+<table id="table">
+<thead>
+<tr>
+<th>Student</th>
+<th>Father</th>
+<th>Mother</th>
+<th>Phone</th>
+<th>Class</th>
+<th>Message</th>
+<th>Date</th>
+<th>Delete</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+</div>
+
+<script>
+
+let data=JSON.parse(localStorage.getItem("enquiries")||"[]");
+
+function render(){
+  let tbody=document.querySelector("#table tbody");
+  tbody.innerHTML="";
+
+  data.forEach((d,i)=>{
+    tbody.innerHTML+=\`
+<tr>
+<td>\${d.student}</td>
+<td>\${d.father}</td>
+<td>\${d.mother}</td>
+<td>\${d.phone}</td>
+<td>\${d.className}</td>
+<td>\${d.query}</td>
+<td>\${d.date}</td>
+<td><button onclick="del(\${i})">Delete</button></td>
+</tr>\`;
+  });
+
+  document.getElementById("count").innerText =
+  "Total Enquiries: " + data.length;
+}
+
+function del(i){
+  if(confirm("Delete this enquiry?")){
+    data.splice(i,1);
+    localStorage.setItem("enquiries",JSON.stringify(data));
+    render();
+  }
+}
+
+function filterTable(){
+  let val=document.getElementById("search").value.toLowerCase();
+  document.querySelectorAll("#table tbody tr").forEach(row=>{
+    row.style.display=row.innerText.toLowerCase().includes(val)?"":"none";
+  });
+}
+
+function exportExcel(){
+  let ws=XLSX.utils.json_to_sheet(data);
+  let wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Enquiries");
+  XLSX.writeFile(wb,"enquiries.xlsx");
+}
+
+function changePassword(){
+  let oldPass=prompt("Enter old password:");
+  if(oldPass!==localStorage.getItem("adminPass")){
+    alert("Wrong password!");
+    return;
+  }
+  let newPass=prompt("Enter new password:");
+  if(newPass){
+    localStorage.setItem("adminPass",newPass);
+    alert("Password changed!");
+  }
+}
+
+function logout(){
+  window.close();
+}
+
+render();
+
+<\/script>
+
+</body>
+</html>`;
+
+let win=window.open("","_blank");
+win.document.write(html);
+}
+</script>
+
+</body>
+</html>
